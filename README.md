@@ -29,7 +29,7 @@ This project implements a simple chat application with:
 - Realtime online presence and messaging with Socket.IO
 - Persistent message storage in MongoDB
 
-It is intended as a practice project for building a modern realtime web app.
+It is intended as a practice project for building a modern realtime web app using web sockets
 
 ## Features
 
