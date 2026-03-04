@@ -28,6 +28,11 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
+// Health check route — used by Render and self-ping to prevent free-tier sleep
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
@@ -39,4 +44,17 @@ if (process.env.NODE_ENV === "production") {
 server.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
   connectDB();
+
+  // Self-ping every 14 minutes to prevent Render free-tier from sleeping
+  if (process.env.NODE_ENV === "production" && process.env.RENDER_EXTERNAL_URL) {
+    const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+    setInterval(async () => {
+      try {
+        const res = await fetch(`${process.env.RENDER_EXTERNAL_URL}/health`);
+        console.log(`[keep-alive] ping ${res.status} at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error("[keep-alive] ping failed:", err.message);
+      }
+    }, PING_INTERVAL);
+  }
 });
